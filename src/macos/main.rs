@@ -28,9 +28,12 @@ fn poll_and_sanitize_clipboard(config: Arc<RwLock<Config>>) {
         let pasteboard = NSPasteboard::get_general_pasteboard();
 
         loop {
-            let config = config.read().unwrap();
+            let sleep_duration = {
+                let config = config.read().unwrap();
+                Duration::from_millis(config.poll_interval_ms)
+            };
 
-            thread::sleep(Duration::from_millis(config.poll_interval_ms));
+            thread::sleep(sleep_duration);
 
             let change_count = pasteboard.get_change_count();
             if last_change_count == change_count {
