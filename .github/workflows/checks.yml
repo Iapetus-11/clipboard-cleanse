@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -16,5 +16,8 @@ jobs:
       - name: Check Formatting
         uses: actions-rust-lang/rustfmt@v1
 
-      - name: Clippy
+      - name: Run Clippy
         run: cargo clippy
+
+      - name: Run Tests
+        run: cargo test
