@@ -1,14 +1,22 @@
-use rdev::{listen, Event, EventType};
+use config::load_and_ensure_config;
+
+#[cfg(target_os = "windows")]
+mod windows;
+
+#[cfg(target_os = "macos")]
+mod macos;
+
+mod config;
+mod sanitization;
 
 fn main() {
-    listen(event_callback).unwrap()
-}
+    println!("Hello, world!");
 
-fn event_callback(event: Event) {
-    match event.event_type {
-        EventType::KeyRelease(k) => {
-            println!("{:#?}", k)
-        }
-        _ => {}
-    }
+    let config = load_and_ensure_config();
+
+    #[cfg(target_os = "macos")]
+    macos::main(config);
+
+    #[cfg(target_os = "windows")]
+    windows::main(config);
 }
