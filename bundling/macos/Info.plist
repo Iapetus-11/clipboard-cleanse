@@ -43,5 +43,8 @@
 
     <key>LSBackgroundOnly</key>
     <true />
+
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
   </dict>
 </plist>
