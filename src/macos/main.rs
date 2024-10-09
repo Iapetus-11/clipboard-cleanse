@@ -77,10 +77,10 @@ pub fn main(config: Config) {
     let status_item_button = status_item.get_button();
 
     let status_item_button_image = NSImage::init_with_data(&NSData::init_with_bytes(
-        include_bytes!("../../resources/logo.png"),
+        include_bytes!("../../resources/icon_256x256.png"),
     ));
     status_item_button_image.set_resizing_mode(NSImageResizingMode::Stretch);
-    status_item_button_image.set_size(&NSSize::new(16.0, 16.0));
+    status_item_button_image.set_size(&NSSize::new(20.0, 20.0));
 
     status_item_button.set_image(&status_item_button_image);
 
