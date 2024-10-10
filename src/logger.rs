@@ -1,6 +1,8 @@
 use std::{
     fmt::{Debug, Display},
-    fs::{File, OpenOptions}, io::{self, Write}, sync::Mutex,
+    fs::{File, OpenOptions},
+    io::{self, Write},
+    sync::Mutex,
 };
 
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -33,11 +35,11 @@ impl Display for LogLevel {
         write!(
             f,
             "{}",
-            match self {
-                &Self::Debug => "DEBUG",
-                &Self::Info => "INFO",
-                &Self::Warning => "WARNING",
-                &Self::Error => "ERROR",
+            match *self {
+                Self::Debug => "DEBUG",
+                Self::Info => "INFO",
+                Self::Warning => "WARNING",
+                Self::Error => "ERROR",
             }
         )
     }
@@ -54,13 +56,15 @@ impl Logger {
         let file = file_path.map(|fp| {
             OpenOptions::new()
                 .create(true)
-                .write(true)
-                .append(true)
+                .truncate(true)
                 .open(&fp)
-                .expect(&format!("Failed to open log file {fp}"))
+                .unwrap_or_else(|_| panic!("Failed to open log file {fp}"))
         });
 
-        Logger { threshold, file: file.map(Mutex::new) }
+        Logger {
+            threshold,
+            file: file.map(Mutex::new),
+        }
     }
 
     pub fn log(&self, level: LogLevel, text: &str) {
@@ -85,6 +89,7 @@ impl Logger {
         self.log(LogLevel::Info, text);
     }
 
+    #[allow(dead_code)]
     pub fn warning(&self, text: &str) {
         self.log(LogLevel::Warning, text);
     }
