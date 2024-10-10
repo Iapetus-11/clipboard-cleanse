@@ -59,7 +59,7 @@ cd "$BUNDLE_DIR"
 mkdir -p MacOS
 cd MacOS
 
-cp "$PROJECT_ROOT/target/release/clipboard_cleanse" .
+cp "$PROJECT_ROOT/target/release/clipboard_cleanse" "./Clipboard Cleanse"
 
 
 # -----------------------------------------------------------------------------

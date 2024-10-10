@@ -9,7 +9,7 @@
     <string>Clipboard Cleanse</string>
 
     <key>CFBundleExecutable</key>
-    <string>clipboard_cleanse</string>
+    <string>Clipboard Cleanse</string>
 
     <key>CFBundleIconFile</key>
     <string>icon.icns</string>
