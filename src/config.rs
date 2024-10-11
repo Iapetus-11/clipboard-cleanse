@@ -57,8 +57,10 @@ fn get_config_file_path() -> PathBuf {
 }
 
 fn write_config(config_path: &PathBuf, config: &Config) {
-    let serialized_config = &toml::to_string_pretty(&config)
-        .unwrap_or_else(|_| panic!("Serialization of config {:#?} to succeed", config));
+    let serialized_config: String =
+        "# Please restart Clipboard Cleanse to apply any configuration changes\n\n".to_string()
+            + &toml::to_string_pretty(&config)
+                .unwrap_or_else(|_| panic!("Serialization of config {:#?} to succeed", config));
 
     let mut file = File::create(config_path)
         .unwrap_or_else(|_| panic!("Config file creation at {:#?} to succeed", config_path));
