@@ -1,5 +1,5 @@
-mod main;
 mod config;
+mod main;
 
+pub use config::{get_home_directory, Config};
 pub use main::main;
-pub use config::{Config, get_home_directory};

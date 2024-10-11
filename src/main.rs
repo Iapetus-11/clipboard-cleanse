@@ -10,6 +10,8 @@ mod config;
 mod logger;
 mod sanitization;
 
+pub use config::Config;
+
 fn main() {
     let config = load_and_ensure_config();
 

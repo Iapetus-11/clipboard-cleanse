@@ -4,11 +4,49 @@ use std::{
     path::PathBuf,
 };
 
+use serde::{Deserialize, Serialize};
+
 #[cfg(target_os = "windows")]
-use crate::windows::{get_home_directory, Config};
+use crate::windows::{get_home_directory, Config as WindowsConfig};
 
 #[cfg(target_os = "macos")]
-use crate::macos::{get_home_directory, Config};
+use crate::macos::{get_home_directory, Config as MacOSConfig};
+
+fn config_default_log_level() -> String {
+    "INFO".into()
+}
+
+fn config_default_log_file() -> Option<String> {
+    None
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Config {
+    #[serde(skip_serializing, default)]
+    pub config_path: String,
+
+    #[serde(default = "config_default_log_level")]
+    pub log_level: String,
+
+    #[serde(default = "config_default_log_file")]
+    pub log_file: Option<String>,
+
+    #[serde(default = "MacOSConfig::default")]
+    pub macos: MacOSConfig,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            config_path: "".into(),
+            log_level: "INFO".into(),
+            log_file: None,
+
+            #[cfg(target_os = "macos")]
+            macos: MacOSConfig::default(),
+        }
+    }
+}
 
 fn get_config_file_path() -> PathBuf {
     let mut home_dir = get_home_directory();

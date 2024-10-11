@@ -1,20 +1,18 @@
-
 use windows::{
     core::PCWSTR,
     Win32::{
         Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, WPARAM},
         System::{DataExchange::AddClipboardFormatListener, LibraryLoader::GetModuleHandleW},
         UI::WindowsAndMessaging::{
-            CreateWindowExW, DefWindowProcW, DispatchMessageW, PeekMessageW, PostQuitMessage, RegisterClassW, CW_USEDEFAULT, MSG, PM_REMOVE,
-            WINDOW_EX_STYLE, WM_DESTROY, WM_QUIT, WNDCLASSW,
-            WS_BORDER, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
+            CreateWindowExW, DefWindowProcW, DispatchMessageW, PeekMessageW, PostQuitMessage,
+            RegisterClassW, CW_USEDEFAULT, MSG, PM_REMOVE, WINDOW_EX_STYLE, WM_DESTROY, WM_QUIT,
+            WNDCLASSW, WS_BORDER, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
         },
     },
 };
 
 use crate::logger::Logger;
-
-use super::config::Config;
+use crate::Config;
 
 pub fn process_win32_events_forever() {
     let mut msg = MSG::default();

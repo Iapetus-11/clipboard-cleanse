@@ -8,11 +8,12 @@ use crate::{
     sanitization::sanitize,
 };
 
-use super::{appkit::NSPasteboard, Config};
+use super::appkit::NSPasteboard;
+use crate::Config;
 
 fn poll_and_sanitize_clipboard(config: Arc<Config>, logger: Arc<Logger>) {
     thread::spawn(move || {
-        let sleep_duration = Duration::from_millis(config.poll_interval_ms);
+        let sleep_duration = Duration::from_millis(config.macos.poll_interval_ms);
 
         let mut last_change_count = -1_isize;
 

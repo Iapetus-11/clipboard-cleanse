@@ -3,7 +3,7 @@ use std::{process, sync::Arc, thread, time::Duration};
 use objc2::rc::Retained;
 use objc2_foundation::MainThreadMarker;
 
-use crate::{logger::Logger, macos::appkit::NSMenuItemBadge};
+use crate::{logger::Logger, macos::appkit::NSMenuItemBadge, Config};
 
 use super::{
     appkit::{
@@ -11,7 +11,6 @@ use super::{
         NSSize, NSStatusBar, NSStatusItem,
     },
     service_management::{SMAppService, SMAppServiceStatus},
-    Config,
 };
 
 pub fn setup_status_bar_item() -> Retained<NSStatusItem> {
