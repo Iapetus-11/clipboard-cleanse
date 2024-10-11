@@ -1,4 +1,3 @@
-use std::thread;
 
 use windows::{
     core::PCWSTR,
@@ -6,15 +5,16 @@ use windows::{
         Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, WPARAM},
         System::{DataExchange::AddClipboardFormatListener, LibraryLoader::GetModuleHandleW},
         UI::WindowsAndMessaging::{
-            CreateWindowExW, DefWindowProcW, DispatchMessageW, PeekMessageW, PostQuitMessage,
-            RegisterClassExW, RegisterClassW, CW_USEDEFAULT, HMENU, MSG, PM_REMOVE,
-            WINDOW_EX_STYLE, WINDOW_STYLE, WM_DESTROY, WM_NULL, WM_QUIT, WNDCLASSEXW, WNDCLASSW,
-            WS_BORDER, WS_EX_LEFT, WS_EX_LTRREADING, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
+            CreateWindowExW, DefWindowProcW, DispatchMessageW, PeekMessageW, PostQuitMessage, RegisterClassW, CW_USEDEFAULT, MSG, PM_REMOVE,
+            WINDOW_EX_STYLE, WM_DESTROY, WM_QUIT, WNDCLASSW,
+            WS_BORDER, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
         },
     },
 };
 
-use crate::sanitization::sanitize;
+use crate::logger::Logger;
+
+use super::config::Config;
 
 pub fn process_win32_events_forever() {
     let mut msg = MSG::default();
@@ -28,7 +28,7 @@ pub fn process_win32_events_forever() {
     }
 }
 
-fn setup_clipboard_listener(hwnd: HWND, callback: fn()) {
+fn setup_clipboard_listener(hwnd: HWND, callback: Box<dyn Fn()>) {
     unsafe {
         AddClipboardFormatListener(hwnd).unwrap();
         // https://learn.microsoft.com/en-us/windows/win32/dataxchg/wm-clipboardupdate
@@ -73,11 +73,11 @@ fn init_window() -> HWND {
     }
 }
 
-pub fn main() {
+pub fn main(_config: Config, logger: Logger) {
     let hwnd = init_window();
-    println!("hwnd: {:#?}", hwnd);
+    logger.debug(&format!("hwnd: {:#?}", hwnd));
 
-    setup_clipboard_listener(hwnd.clone(), || println!("COPY!"));
+    setup_clipboard_listener(hwnd, Box::new(move || logger.debug("COPY!")));
     process_win32_events_forever();
 }
 
