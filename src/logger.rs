@@ -57,8 +57,9 @@ impl Logger {
             OpenOptions::new()
                 .create(true)
                 .truncate(true)
+                .write(true)
                 .open(&fp)
-                .unwrap_or_else(|_| panic!("Failed to open log file {fp}"))
+                .unwrap_or_else(|err| panic!("Failed to open log file {fp} due to {err}"))
         });
 
         Logger {
