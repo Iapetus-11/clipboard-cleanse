@@ -67,7 +67,8 @@ cp "$PROJECT_ROOT/target/release/clipboard_cleanse" "./Clipboard Cleanse"
 
 if [[ "$*" == *"--copy-to-applications"* ]]
 then
-    cp -f -r "$PROJECT_ROOT/target/release/bundle/osx/Clipboard Cleanse.app" "/Applications/Clipboard Cleanse.app"
+    rm -rf "/Applications/Clipboard Cleanse.app"
+    cp -fR "$PROJECT_ROOT/target/release/bundle/osx/Clipboard Cleanse.app" "/Applications/Clipboard Cleanse.app"
     echo Copied to /Applications!
 else
     open "$PROJECT_ROOT/target/release/bundle/osx/"
