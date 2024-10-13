@@ -105,6 +105,12 @@ pub fn sanitize(text: &str) -> String {
                     }
                 }
             }
+            "www.google.com" | "google.com" => {
+                query_params_to_remove.extend([
+                    "gs_lcrp", "gs_lp", "sca_esv", "ei", "iflsig", "sclient", "rlz", "bih", "biw",
+                    "dpr", "ved", "sa", "fbs", "source", "sourceid",
+                ]);
+            }
             _ => {}
         }
 
@@ -266,6 +272,58 @@ mod tests {
                 sanitize(&format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}")),
                 &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
             ),
+        ];
+
+        for (test, expected) in cases {
+            assert_eq!(test, expected);
+        }
+    }
+
+    #[test]
+    fn test_google() {
+        const WITH_BS: &str =
+        "https://www.google.com/search?q=let+me+google+that+for+you&udm=14&rlz=1C5CHFA_enUS1022US1022&oq=let+me+google+that+for+you&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIGCAEQRRhAMgYIAhAAGEAyBggDEAAYQDIGCAQQABhA0gEIMjM0MWowajeoAgCwAgA&sourceid=chrome&ie=UTF-8";
+        const NO_BS: &str =
+            "https://www.google.com/search?q=let+me+google+that+for+you&udm=14&oq=let+me+google+that+for+you&ie=UTF-8";
+
+        const WITH_BS_BAND: &str = "https://www.google.com/search?sca_esv=eab902f88a49963b&rlz=1C5CHFA_enUS1022US1022&q=microwave+(band)&source=lnms&fbs=AEQNm0Aa4sjWe7Rqy32pFwRj0UkWd8nbOJfsBGGB5IQQO6L3J_86uWOeqwdnV0yaSF-x2jogM63VUdBhAMVqo6r6ESHk5gYCycVYeSiTstipcfTqmIhRyNTkvcUNlFNBFo1Ct8djYRwYkoYYVQCjXdCMx_QpPNuVSAotPifJ1VZwOnoSbLVxcdVtmtRchwzdBXA8SbTftA_onVzsK5maxZvT9OLVuyPkOw&sa=X&ved=2ahUKEwj2hOa0iIyJAxWaTDABHaNRCpAQ0pQJegQIEhAB&biw=1512&bih=793&dpr=2";
+        const NO_BS_BAND: &str = "https://www.google.com/search?q=microwave+%28band%29";
+
+        const WITH_BS_MOVIE: &str = "https://www.google.com/search?sca_esv=eab902f88a49963b&rlz=1C5CHFA_enUS1022US1022&q=iron+man&source=lnms&fbs=AEQNm0D8w290mrrxEB5tt05ZGXVzey53Ax5hYPfVm2hPmC54fDCmp6uNdUTjug5J6iXC9R56JST0dqljAGrQuD17_gPphSdptBqrpONac59aEg0atuDCge5YKBwQJ8eEtI4mHmFziRkzFQkWBan59H2WVJl5UuGam0MykN5C1gPIIzI_eTXdB2q5r30l2wS3XYg4VirYrzJ_ZDXOEm__K690lE80L8L41w&sa=X&ved=2ahUKEwi38O_tiIyJAxVp5MkDHangI4gQ0pQJegQIEhAB&biw=1512&bih=793&dpr=2";
+        const NO_BS_MOVIE: &str = "https://www.google.com/search?q=iron+man";
+
+        const WITH_BS_ACTOR: &str = "https://www.google.com/search?sa=X&sca_esv=eab902f88a49963b&rlz=1C5CHFA_enUS1022US1022&q=Robert+Downey+Jr.&stick=H4sIAAAAAAAAAONgFuLUz9U3SKnKSapQAjMNzaqMsrSEspOt9NMyc3LBhFVyYnHJIlbBoPyk1KISBZf88rzUSgWvIr0drIwAiCXEPEMAAAA&ved=2ahUKEwjHp-uciYyJAxUJM9AFHb4YOl8QgOQBegQIRhAG&biw=1512&bih=793&dpr=2";
+        const NO_BS_ACTOR: &str = "https://www.google.com/search?q=Robert+Downey+Jr.&stick=H4sIAAAAAAAAAONgFuLUz9U3SKnKSapQAjMNzaqMsrSEspOt9NMyc3LBhFVyYnHJIlbBoPyk1KISBZf88rzUSgWvIr0drIwAiCXEPEMAAAA";
+
+        let cases = [
+            (sanitize(WITH_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {WITH_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+            (sanitize(NO_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+            (sanitize(WITH_BS_BAND), NO_BS_BAND),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {WITH_BS_BAND} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS_BAND} {LOREM_IPSUM}"),
+            ),
+            (sanitize(NO_BS_BAND), NO_BS_BAND),
+            (sanitize(WITH_BS_MOVIE), NO_BS_MOVIE),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {WITH_BS_MOVIE} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS_MOVIE} {LOREM_IPSUM}"),
+            ),
+            (sanitize(NO_BS_MOVIE), NO_BS_MOVIE),
+            (sanitize(WITH_BS_ACTOR), NO_BS_ACTOR),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {WITH_BS_ACTOR} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS_ACTOR} {LOREM_IPSUM}"),
+            ),
+            (sanitize(NO_BS_ACTOR), NO_BS_ACTOR),
         ];
 
         for (test, expected) in cases {
