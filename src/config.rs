@@ -31,8 +31,13 @@ pub struct Config {
     #[serde(default = "config_default_log_file")]
     pub log_file: Option<String>,
 
+    #[cfg(target_os = "macos")]
     #[serde(default = "MacOSConfig::default")]
     pub macos: MacOSConfig,
+
+    #[cfg(target_os = "windows")]
+    #[serde(default = "WindowsConfig::default")]
+    pub windows: WindowsConfig,
 }
 
 impl Default for Config {
@@ -44,6 +49,9 @@ impl Default for Config {
 
             #[cfg(target_os = "macos")]
             macos: MacOSConfig::default(),
+
+            #[cfg(target_os = "windows")]
+            windows: WindowsConfig::default(),
         }
     }
 }

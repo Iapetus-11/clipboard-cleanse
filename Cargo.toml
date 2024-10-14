@@ -12,7 +12,7 @@ toml = "0.8.19"
 url = "2.5.2"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.58.0", features = ["Win32_System_DataExchange", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_System_LibraryLoader"] }
+windows = { version = "0.58.0", features = ["Win32_System_DataExchange", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_System_LibraryLoader", "Win32_System_Memory"] }
 windows-result = "0.2.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
