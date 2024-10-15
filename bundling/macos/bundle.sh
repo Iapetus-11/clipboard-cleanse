@@ -52,7 +52,7 @@ rm -r icon.iconset
 
 
 # -----------------------------------------------------------------------------
-# Copy Executable
+# Copy Bundle
 
 cd "$BUNDLE_DIR"
 
@@ -61,6 +61,14 @@ cd MacOS
 
 cp "$PROJECT_ROOT/target/release/clipboard_cleanse" "./Clipboard Cleanse"
 
+
+# -----------------------------------------------------------------------------
+# Sign Bundle
+
+if [[ -z "$CODESIGN_IDENTIFIER" ]]
+then
+    codesign -s "$CODESIGN_IDENTIFIER" "$BUNDLE_DIR/.."
+fi
 
 # -----------------------------------------------------------------------------
 # Done!
