@@ -118,6 +118,22 @@ pub fn sanitize(text: &str) -> String {
             "www.x.com" | "x.com" | "www.twitter.com" | "twitter.com" => {
                 query_params_to_remove.extend(["t", "s"]);
             }
+            "www.ebay.com" | "ebay.com" => {
+                query_params_to_remove.extend([
+                    "_trksid",
+                    "mkcid",
+                    "mkevt",
+                    "mkrid",
+                    "ssspo",
+                    "sssrc",
+                    "ssuid",
+                    "widget_ver",
+                    "media",
+                ]);
+            }
+            "www.walmart.com" | "walmart.com" => {
+                query_params_to_remove.extend(["sid", "from"]);
+            }
             _ => {}
         }
 
@@ -367,6 +383,54 @@ mod tests {
         const WITH_BS: &str =
             "https://x.com/kirawontmiss/status/1843681066282017177?s=46&t=dmXz8VbTtezubBw4-OTfRw";
         const NO_BS: &str = "https://x.com/kirawontmiss/status/1843681066282017177";
+
+        let cases = [
+            (sanitize(WITH_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {WITH_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+            (sanitize(NO_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+        ];
+
+        for (test, expected) in cases {
+            assert_eq!(test, expected);
+        }
+    }
+
+    #[test]
+    fn test_ebay() {
+        const WITH_BS: &str =
+            "https://www.ebay.com/itm/365052429033?mkcid=16&mkevt=1&mkrid=711-127632-2357-0&ssspo=EdIxCRi_Twa&sssrc=2047675&ssuid=14aqx1bysd2&widget_ver=artemis&media=COPY";
+        const NO_BS: &str = "https://www.ebay.com/itm/365052429033";
+
+        let cases = [
+            (sanitize(WITH_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {WITH_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+            (sanitize(NO_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+        ];
+
+        for (test, expected) in cases {
+            assert_eq!(test, expected);
+        }
+    }
+
+    #[test]
+    fn test_walmart() {
+        const WITH_BS: &str =
+            "https://www.walmart.com/ip/Halloween-Costumes-Woman-Plus-Size-Women-Deluxe-Sexy-Women-s-Clothin-Horrific-Fancy-Dress-Costume-Distinctive-Scary-Fun-World-Fashion/8773851353?classType=VARIANT&athbdg=L1600&selectedSellerId=101685259&from=%2Fsearch&sid=21aed447-b41b-42b1-a1cd-add60fd1c945";
+        const NO_BS: &str = "https://www.walmart.com/ip/Halloween-Costumes-Woman-Plus-Size-Women-Deluxe-Sexy-Women-s-Clothin-Horrific-Fancy-Dress-Costume-Distinctive-Scary-Fun-World-Fashion/8773851353?classType=VARIANT&athbdg=L1600&selectedSellerId=101685259";
 
         let cases = [
             (sanitize(WITH_BS), NO_BS),

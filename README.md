@@ -13,6 +13,7 @@
   - [x] `google.com` (removes many query parameters: `gs_lcrp`, `gs_lp`, `sca_esv`, `ei`, `iflsig`, `sclient`, `rlz`, `bih`, `biw`, `dpr`, `ved`, `sa`, `fbs`, `source`, `sourceid`)
   - [x] `instagram.com` (removes `?igsh=...` query parameter)
   - [x] `x.com`/Twitter (removes `?s=...&t=...` query parameters)
+  - [x] `walmart.com` (removes `?from=...&sid=...` query parameters)
   - [ ] `facebook.com` (TODO)
   - [ ] `tiktok.com` (TODO)
 
