@@ -60,7 +60,7 @@ pub fn sanitize(text: &str) -> String {
         let mut url = url;
 
         match url.domain().unwrap_or("") {
-            "youtu.be" => {
+            "youtu.be" | "www.youtube.com" | "youtube.com" => {
                 query_params_to_remove.insert("si");
             }
             "open.spotify.com" => {
