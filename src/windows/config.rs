@@ -6,19 +6,5 @@ pub fn get_home_directory() -> PathBuf {
     PathBuf::from(r"C:\Users\miloi")
 }
 
-fn config_default_log_level() -> String {
-    "INFO".into()
-}
-
-fn config_default_log_file() -> Option<String> {
-    None
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Config {}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {}
-    }
-}
