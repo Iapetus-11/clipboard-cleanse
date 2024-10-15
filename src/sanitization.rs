@@ -54,6 +54,7 @@ pub fn sanitize(text: &str) -> String {
         "utm_name",
         "utm_term",
         "utm_content",
+        "utm_campaign",
     ]);
 
     for (split_part, url) in matched_parts {
