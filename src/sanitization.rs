@@ -112,6 +112,12 @@ pub fn sanitize(text: &str) -> String {
                     "dpr", "ved", "sa", "fbs", "source", "sourceid",
                 ]);
             }
+            "www.instagram.com" | "instagram.com" => {
+                query_params_to_remove.insert("igsh");
+            }
+            "www.x.com" | "x.com" | "www.twitter.com" | "twitter.com" => {
+                query_params_to_remove.extend(["t", "s"]);
+            }
             _ => {}
         }
 
@@ -325,6 +331,54 @@ mod tests {
                 &format!("{LOREM_IPSUM} {NO_BS_ACTOR} {LOREM_IPSUM}"),
             ),
             (sanitize(NO_BS_ACTOR), NO_BS_ACTOR),
+        ];
+
+        for (test, expected) in cases {
+            assert_eq!(test, expected);
+        }
+    }
+
+    #[test]
+    fn test_instagram() {
+        const WITH_BS: &str =
+        "https://www.instagram.com/p/DA3VayjOVSM/?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==";
+        const NO_BS: &str = "https://www.instagram.com/p/DA3VayjOVSM/";
+
+        let cases = [
+            (sanitize(WITH_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {WITH_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+            (sanitize(NO_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+        ];
+
+        for (test, expected) in cases {
+            assert_eq!(test, expected);
+        }
+    }
+
+    #[test]
+    fn test_x_formerly_known_as_twitter() {
+        const WITH_BS: &str =
+            "https://x.com/kirawontmiss/status/1843681066282017177?s=46&t=dmXz8VbTtezubBw4-OTfRw";
+        const NO_BS: &str = "https://x.com/kirawontmiss/status/1843681066282017177";
+
+        let cases = [
+            (sanitize(WITH_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {WITH_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
+            (sanitize(NO_BS), NO_BS),
+            (
+                sanitize(&format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}")),
+                &format!("{LOREM_IPSUM} {NO_BS} {LOREM_IPSUM}"),
+            ),
         ];
 
         for (test, expected) in cases {

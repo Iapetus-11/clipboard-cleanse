@@ -11,8 +11,9 @@
   - [x] `open.spotify.com` links (removes `?si=...` query parameter)
   - [x] `amazon.com` (removes `/ref=...` from path and removes many query parameters: `crid`, `dib`, `dib_tag`, `keywords`, `qid`, `sprefix`, `sr`, `pd_rd_w`, `pf_rd_s`, `pf_rd_p`, `pf_rd_t`, `pf_rd_i`, `pf_rd_m`, `pf_rd_r`, `pd_rd_wg`, `pd_rd_r`, `linkCode`, `tag`, `linkId`, `geniuslink`, `ref`, `ref_`, `content-id`, `psc`, `th`)
   - [x] `google.com` (removes many query parameters: `gs_lcrp`, `gs_lp`, `sca_esv`, `ei`, `iflsig`, `sclient`, `rlz`, `bih`, `biw`, `dpr`, `ved`, `sa`, `fbs`, `source`, `sourceid`)
+  - [x] `instagram.com` (removes `?igsh=...` query parameter)
+  - [x] `x.com`/Twitter (removes `?s=...&t=...` query parameters)
   - [ ] `facebook.com` (TODO)
-  - [ ] `instagram.com` (TODO)
   - [ ] `tiktok.com` (TODO)
 
 ## Installation
