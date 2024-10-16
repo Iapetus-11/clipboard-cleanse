@@ -3,7 +3,7 @@ use std::{sync::Arc, thread, time::Duration};
 use objc2_foundation::MainThreadMarker;
 
 use crate::{
-    logger::Logger,
+    log,
     macos::{app_delegate::AppDelegate, appkit::NSApplication, ui},
     sanitization::sanitize,
 };
@@ -11,7 +11,7 @@ use crate::{
 use super::appkit::NSPasteboard;
 use crate::Config;
 
-fn poll_and_sanitize_clipboard(config: Arc<Config>, logger: Arc<Logger>) {
+fn poll_and_sanitize_clipboard(config: Arc<Config>) {
     thread::spawn(move || {
         let sleep_duration = Duration::from_millis(config.macos.poll_interval_ms);
 
@@ -40,16 +40,14 @@ fn poll_and_sanitize_clipboard(config: Arc<Config>, logger: Arc<Logger>) {
                 pasteboard.set_text(&sanitized_contents);
                 last_change_count += 1;
 
-                logger.info("Sanitized copied text!");
+                log!(Info, "Sanitized copied text!");
             }
         }
     });
 }
 
-pub fn main(config: Config, logger: Logger) {
-    let logger = Arc::new(logger);
-
-    logger.debug("Initializing app...");
+pub fn main(config: Config) {
+    log!(Debug, "Initializing app...");
 
     let config = Arc::new(config);
 
@@ -57,20 +55,18 @@ pub fn main(config: Config, logger: Logger) {
     let app = NSApplication::get_shared();
 
     app.set_delegate(&AppDelegate::new(mtm, {
-        let logger = logger.clone();
         let config = config.clone();
 
         Box::new(move || {
-            logger.info("Application launched!");
-            poll_and_sanitize_clipboard(config.clone(), logger.clone());
+            log!(Info, "Application launched!");
+            poll_and_sanitize_clipboard(config.clone());
         })
     }));
 
     let status_bar_item = ui::setup_status_bar_item();
-    let _status_bar_item_menu =
-        ui::setup_menu(&mtm, &status_bar_item, config.clone(), logger.clone());
+    let _status_bar_item_menu = ui::setup_menu(&mtm, &status_bar_item, config.clone());
 
-    logger.debug("Running app...");
+    log!(Debug, "Running app...");
 
     app.run();
 }

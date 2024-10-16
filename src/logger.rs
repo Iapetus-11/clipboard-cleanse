@@ -2,10 +2,12 @@ use std::{
     fmt::{Debug, Display},
     fs::{File, OpenOptions},
     io::{self, Write},
-    sync::Mutex,
+    sync::{LazyLock, RwLock},
 };
 
-#[derive(Debug, PartialEq, PartialOrd)]
+static LOGGER: LazyLock<RwLock<Logger>> = LazyLock::new(|| RwLock::new(Logger::default()));
+
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum LogLevel {
     Debug,
     Info,
@@ -48,54 +50,65 @@ impl Display for LogLevel {
 #[derive(Debug)]
 pub struct Logger {
     threshold: LogLevel,
-    file: Option<Mutex<File>>,
+    file: Option<File>,
 }
 
-impl Logger {
-    pub fn new(threshold: LogLevel, file_path: Option<String>) -> Self {
-        let file = file_path.map(|fp| {
-            OpenOptions::new()
-                .create(true)
-                .truncate(true)
-                .write(true)
-                .open(&fp)
-                .unwrap_or_else(|err| panic!("Failed to open log file {fp} due to {err}"))
-        });
-
-        Logger {
-            threshold,
-            file: file.map(Mutex::new),
+impl Default for Logger {
+    fn default() -> Self {
+        Self {
+            threshold: LogLevel::Debug,
+            file: None,
         }
     }
+}
 
-    pub fn log(&self, level: LogLevel, text: &str) {
-        if level >= self.threshold {
-            let formatted = format!("{level}: {text}\n");
-            io::stdout().write_all(formatted.as_bytes()).unwrap();
-            io::stdout().flush().unwrap();
+pub fn set_threshold(threshold: LogLevel) {
+    let mut logger = LOGGER.write().unwrap();
+    logger.threshold = threshold;
+}
 
-            if let Some(file) = &self.file {
-                let mut file = file.lock().unwrap();
-                file.write_all(formatted.as_bytes()).unwrap();
-                file.flush().unwrap();
-            }
+pub fn set_file(file_path: Option<&str>) {
+    let file = file_path.map(|fp| {
+        OpenOptions::new()
+            .create(true)
+            .truncate(true)
+            .write(true)
+            .open(fp)
+            .unwrap_or_else(|err| panic!("Failed to open log file {fp} due to {err}"))
+    });
+
+    let mut logger = LOGGER.write().unwrap();
+    logger.file = file;
+}
+
+pub fn log(level: LogLevel, text: &str) {
+    let skip_log = {
+        let logger = LOGGER.read().unwrap();
+        level < logger.threshold
+    };
+
+    if skip_log {
+        return;
+    }
+
+    let mut logger = LOGGER.write().unwrap();
+
+    let formatted = format!("{level}: {text}\n");
+    io::stdout().write_all(formatted.as_bytes()).unwrap();
+    io::stdout().flush().unwrap();
+
+    if let Some(file) = &mut logger.file {
+        file.write_all(formatted.as_bytes()).unwrap();
+        file.flush().unwrap();
+    }
+}
+
+#[macro_export]
+macro_rules! log {
+    ($log_level:ident, $($arg:tt)*) => {
+        {
+            use $crate::logger::{log, LogLevel};
+            log(LogLevel::$log_level, &format!($($arg)*));
         }
-    }
-
-    pub fn debug(&self, text: &str) {
-        self.log(LogLevel::Debug, text);
-    }
-
-    pub fn info(&self, text: &str) {
-        self.log(LogLevel::Info, text);
-    }
-
-    #[allow(dead_code)]
-    pub fn warning(&self, text: &str) {
-        self.log(LogLevel::Warning, text);
-    }
-
-    pub fn error(&self, text: &str) {
-        self.log(LogLevel::Error, text);
-    }
+    };
 }

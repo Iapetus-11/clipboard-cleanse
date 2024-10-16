@@ -3,7 +3,7 @@ use std::{process, sync::Arc, thread, time::Duration};
 use objc2::rc::Retained;
 use objc2_foundation::MainThreadMarker;
 
-use crate::{logger::Logger, macos::appkit::NSMenuItemBadge, Config};
+use crate::{log, macos::appkit::NSMenuItemBadge, Config};
 
 use super::{
     appkit::{
@@ -30,11 +30,7 @@ pub fn setup_status_bar_item() -> Retained<NSStatusItem> {
     status_bar_item
 }
 
-pub fn setup_toggle_login_item_menu_item(
-    mtm: &MainThreadMarker,
-    menu: &Retained<NSMenu>,
-    logger: Arc<Logger>,
-) {
+pub fn setup_toggle_login_item_menu_item(mtm: &MainThreadMarker, menu: &Retained<NSMenu>) {
     fn get_status() -> (Result<SMAppServiceStatus, String>, bool) {
         let login_item_status = SMAppService::get_main_app_service().get_status();
 
@@ -47,8 +43,6 @@ pub fn setup_toggle_login_item_menu_item(
         mtm,
         "Toggle Auto-Start",
         {
-            let logger: Arc<Logger> = logger.clone();
-
             let badge = NSMenuItemBadge::init_with_string(mtm, "Enabled");
 
             fn error_badge(badge: &Retained<NSMenuItemBadge>) {
@@ -68,42 +62,45 @@ pub fn setup_toggle_login_item_menu_item(
 
                 match login_item_status {
                     Ok(SMAppServiceStatus::Enabled) => {
-                        logger.debug("Unregistering login item...");
+                        log!(Debug, "Unregistering login item...");
 
                         let (success, error) =
                             SMAppService::get_main_app_service().unregister_and_return_error();
 
                         if !success {
-                            logger.error(&format!(
-                                "Encountered error while registering login item: {:#?}",
-                                error,
-                            ));
+                            log!(
+                                Error,
+                                "Encountered error while registering login item: {error:#?}"
+                            );
 
                             error_badge(&badge);
                         } else {
-                            logger.debug("Login item unregistered!");
+                            log!(Debug, "Login item unregistered!");
                         }
                     }
                     Ok(SMAppServiceStatus::ErrorAndNotFound)
                     | Ok(SMAppServiceStatus::NotRegistered) => {
-                        logger.debug("Registering login item...");
+                        log!(Debug, "Registering login item...");
 
                         let (success, error) =
                             SMAppService::get_main_app_service().register_and_return_error();
 
                         if !success {
-                            logger.error(&format!(
-                                "Encountered error while registering login item: {:#?}",
-                                error,
-                            ));
+                            log!(
+                                Error,
+                                "Encountered error while registering login item: {error:#?}"
+                            );
 
                             error_badge(&badge);
                         } else {
-                            logger.debug("Login item registered!");
+                            log!(Info, "Login item registered!");
                         }
                     }
                     Ok(SMAppServiceStatus::RequiresApproval) => {
-                        logger.debug("Login item requires approval?");
+                        log!(
+                            Debug,
+                            "Login item requires approval? Opening login item settings..."
+                        );
                         SMAppService::open_system_settings_to_login_items();
                     }
                     Err(_) => {
@@ -137,7 +134,6 @@ pub fn setup_menu(
     mtm: &MainThreadMarker,
     status_bar_item: &Retained<NSStatusItem>,
     config: Arc<Config>,
-    logger: Arc<Logger>,
 ) -> Retained<NSMenu> {
     let menu = NSMenu::init(mtm, "Clipboard Cleanse");
 
@@ -145,23 +141,22 @@ pub fn setup_menu(
 
     menu.add_item(&NSMenuItem::init_section_header("Clipboard Cleanse"));
 
-    setup_toggle_login_item_menu_item(mtm, &menu, logger.clone());
+    setup_toggle_login_item_menu_item(mtm, &menu);
 
     menu.add_item(&NSMenuItem::init_with_action(
         mtm,
         "Open Config File",
         {
             let config_path = config.config_path.clone();
-            let logger = logger.clone();
             Box::new(move |_| {
-                logger.debug("Opening config file...");
+                log!(Debug, "Opening config file...");
 
                 process::Command::new("open")
                     .args([&config_path])
                     .output()
                     .expect("Expected successful opening of config file");
 
-                logger.debug("Config file opened!");
+                log!(Debug, "Config file opened!");
             })
         },
         ",",
