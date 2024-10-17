@@ -26,7 +26,7 @@ impl Clipboard {
         unsafe { CloseClipboard() }
     }
 
-    pub fn get_string(&mut self) -> Result<String, windows_result::Error> {
+    pub fn get_string(&mut self) -> Result<Option<String>, windows_result::Error> {
         self.open()?;
 
         let clipboard_data = {
@@ -36,17 +36,22 @@ impl Clipboard {
         .0;
 
         if clipboard_data.is_null() {
-            todo!();
+            return Ok(None);
         }
 
         let clipboard_data = HGLOBAL(clipboard_data);
 
         let clipboard_data = unsafe {
             let clipboard_data_size = GlobalSize(clipboard_data);
-            GlobalLock(clipboard_data);
 
             let mut string_data = vec![0_u16; clipboard_data_size / size_of::<u16>()];
-            clipboard_data.0.copy_to(
+
+            let locked_clipboard_data = GlobalLock(clipboard_data);
+            if locked_clipboard_data.is_null() {
+                return Ok(None);
+            }
+
+            locked_clipboard_data.copy_to(
                 string_data.as_mut_ptr().cast::<c_void>(),
                 clipboard_data_size,
             );
@@ -58,6 +63,6 @@ impl Clipboard {
 
         self.close()?;
 
-        Ok(String::from_utf16_lossy(&clipboard_data))
+        Ok(Some(String::from_utf16_lossy(&clipboard_data)))
     }
 }

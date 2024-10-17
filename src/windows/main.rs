@@ -1,42 +1,52 @@
-use windows::{
-    core::PCWSTR,
-    Win32::{
-        Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, WPARAM},
-        System::{DataExchange::AddClipboardFormatListener, LibraryLoader::GetModuleHandleW},
-        UI::WindowsAndMessaging::{
-            CreateWindowExW, DefWindowProcW, DispatchMessageW, PeekMessageW, PostQuitMessage,
-            RegisterClassW, CW_USEDEFAULT, MSG, PM_REMOVE, WINDOW_EX_STYLE, WM_CLIPBOARDUPDATE,
-            WM_DESTROY, WM_QUIT, WNDCLASSW, WS_BORDER, WS_OVERLAPPEDWINDOW,
-        },
+use crate::log;
+use crate::Config;
+
+use windows::Win32::UI::WindowsAndMessaging::{DestroyWindow, WM_LBUTTONDOWN};
+use windows::Win32::{
+    Foundation::{HWND, LPARAM, LRESULT, WPARAM},
+    UI::WindowsAndMessaging::{
+        DefWindowProcW, DispatchMessageW, PeekMessageW, MSG, PM_REMOVE, WM_CLIPBOARDUPDATE, WM_QUIT,
     },
 };
 
-use crate::logger::Logger;
-use crate::Config;
+use super::clipboard_listener::destroy_clipboard_listener;
+use super::clipboard_listener::handle_clipboard_changed;
+use super::clipboard_listener::setup_clipboard_listener;
+use super::ctrlc_handler::setup_ctrlc_handler;
+use super::system_tray::setup_system_tray;
+use super::window::init_window;
+use super::wm_user::WM_USER;
 
-use super::Clipboard;
+pub fn destroy(hwnd: HWND) -> windows::core::Result<()> {
+    destroy_clipboard_listener(hwnd)?;
 
-pub fn process_win32_events_forever() {
-    let mut msg = MSG::default();
+    unsafe { DestroyWindow(hwnd) }
+}
+
+pub fn process_win32_events_forever(hwnd: HWND) -> windows::core::Result<()> {
+    log!(Debug, "Running event loop...");
+
+    let mut msg: MSG = MSG::default();
     while msg.message != WM_QUIT {
         unsafe {
-            if PeekMessageW(&mut msg, None, 0, 0, PM_REMOVE).into() {
+            if PeekMessageW(&mut msg, hwnd, 0, 0, PM_REMOVE).into() {
                 DispatchMessageW(&msg);
             }
         }
     }
+
+    destroy(hwnd)
 }
 
 extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     match msg {
-        msg if msg == WM_DESTROY => {
-            unsafe { PostQuitMessage(0) };
-            LRESULT(0)
-        }
-        msg if msg == WM_CLIPBOARDUPDATE => {
-            let mut clipboard = Clipboard::new(hwnd);
+        msg if msg == WM_CLIPBOARDUPDATE => handle_clipboard_changed(hwnd),
+        msg if msg == WM_USER::SHELLICON as u32 => {
+            log!(Debug, "SHELLICON event detected!");
 
-            println!("clipboard: {:?}", clipboard.get_string());
+            if lparam.0 as u32 == WM_LBUTTONDOWN {
+                log!(Debug, "Shell icon was clicked?");
+            }
 
             LRESULT(0)
         }
@@ -44,70 +54,14 @@ extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM
     }
 }
 
-fn setup_clipboard_listener(hwnd: HWND, logger: &Logger) {
-    logger.debug("Registering clipboard listener...");
+pub fn main(_config: Config) {
+    let hwnd = init_window(wnd_proc).unwrap();
 
-    unsafe {
-        AddClipboardFormatListener(hwnd).unwrap();
-        // https://learn.microsoft.com/en-us/windows/win32/dataxchg/wm-clipboardupdate
-    }
+    setup_ctrlc_handler(hwnd).unwrap();
 
-    logger.debug("Clipboard listener registered!");
-}
+    setup_clipboard_listener(hwnd).unwrap();
 
-fn init_window(logger: &Logger) -> HWND {
-    logger.debug("Initializing window...");
+    setup_system_tray(hwnd);
 
-    let wnd_class_name = "ClipboardCleanseWindow"
-        .encode_utf16()
-        .collect::<Vec<u16>>();
-
-    let hwnd = unsafe {
-        let h_instance: HINSTANCE = GetModuleHandleW(None).unwrap().into();
-
-        let wnd_class = WNDCLASSW {
-            lpfnWndProc: Some(wnd_proc),
-            hInstance: h_instance,
-            lpszClassName: PCWSTR::from_raw(wnd_class_name.as_ptr()),
-            ..Default::default()
-        };
-
-        RegisterClassW(&wnd_class);
-
-        CreateWindowExW(
-            WINDOW_EX_STYLE::default(),
-            PCWSTR(wnd_class_name.as_ptr()),
-            PCWSTR(
-                "Clipboard Cleanse"
-                    .encode_utf16()
-                    .collect::<Vec<u16>>()
-                    .as_ptr(),
-            ),
-            WS_BORDER | WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            None,
-            None,
-            h_instance,
-            None,
-        )
-        .unwrap()
-    };
-
-    logger.debug("Window initialized!");
-
-    hwnd
-}
-
-pub fn main(_config: Config, logger: Logger) {
-    logger.debug("Initializing window...");
-    let hwnd = init_window(&logger);
-    logger.debug("Window initialized!");
-
-    setup_clipboard_listener(hwnd, &logger);
-
-    logger.debug("Running event loop...");
-    process_win32_events_forever();
+    process_win32_events_forever(hwnd).unwrap();
 }
