@@ -1,15 +1,14 @@
-use std::{collections::HashSet, hash::RandomState};
+use std::{collections::HashSet, hash::RandomState, sync::LazyLock};
 
-use lazy_static::lazy_static;
 use regex::Regex;
 use url::Url;
 
-lazy_static! {
-    static ref URL_REGEX: Regex = Regex::new(
+static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
         r"([a-zA-Z0-9]+:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
     )
-    .unwrap();
-}
+    .unwrap()
+});
 
 fn remove_query_params(url: Url, query_param_keys: &HashSet<&str, RandomState>) -> Url {
     let mut new_url = url.clone();
