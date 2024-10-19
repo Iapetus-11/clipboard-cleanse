@@ -3,42 +3,50 @@ use windows::Win32::{
     System::DataExchange::{AddClipboardFormatListener, RemoveClipboardFormatListener},
 };
 
-use crate::{log, windows::clipboard::Clipboard};
+use crate::{log, sanitization::sanitize, windows::clipboard::Clipboard};
 
 pub fn handle_clipboard_changed(hwnd: HWND) -> LRESULT {
     let mut clipboard = Clipboard::new(hwnd);
 
-    // TODO: For some reason, reading from the text clipboard breaks pasting other types of content (Ex: images)
+    if let Ok(Some(contents)) = clipboard.get_text() {
+        let sanitized_contents = sanitize(&contents);
 
-    log!(
-        Debug,
-        "clipboard: {:#?}",
-        clipboard.get_string().unwrap_or(None).unwrap_or("".into())
-    );
+        if contents == sanitized_contents {
+            return LRESULT(0);
+        }
+
+        let result = clipboard.set_text(sanitized_contents);
+
+        match result {
+            Ok(_) => log!(Info, "Sanitized copied text!"),
+            Err(err) => log!(
+                Error,
+                "Failed to set clipboard with sanitized text due to: {err}"
+            ),
+        }
+    }
 
     LRESULT(0)
 }
 
 pub fn setup_clipboard_listener(hwnd: HWND) -> windows::core::Result<()> {
-    log!(Debug, "Registering clipboard listener...");
+    let result = unsafe { AddClipboardFormatListener(hwnd) };
 
-    unsafe {
-        AddClipboardFormatListener(hwnd)?;
-    }
+    match result.is_ok() {
+        true => log!(Debug, "Registered clipboard listener"),
+        false => log!(Error, "Failed to register clipboard listener :/"),
+    };
 
-    log!(Debug, "Clipboard listener registered!");
-
-    Ok(())
+    result
 }
 
 pub fn destroy_clipboard_listener(hwnd: HWND) -> windows::core::Result<()> {
-    log!(Debug, "Unregistering clipboard listener...");
+    let result = unsafe { RemoveClipboardFormatListener(hwnd) };
 
-    unsafe {
-        RemoveClipboardFormatListener(hwnd)?;
-    }
+    match result.is_ok() {
+        true => log!(Debug, "Removed clipboard listener"),
+        false => log!(Error, "Failed to remove clipboard listener :/"),
+    };
 
-    log!(Debug, "Clipboard listener unregistered!");
-
-    Ok(())
+    result
 }

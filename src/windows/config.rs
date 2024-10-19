@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use windows::Win32::{
     Foundation::{HANDLE, HWND},
-    UI::Shell::{SHGetFolderPathW, CSIDL_COMMON_APPDATA},
+    UI::Shell::{SHGetFolderPathW, CSIDL_PROFILE},
 };
 
 pub fn get_home_directory() -> PathBuf {
@@ -11,7 +11,7 @@ pub fn get_home_directory() -> PathBuf {
         let mut out = [0_u16; 260];
         SHGetFolderPathW(
             HWND::default(),
-            CSIDL_COMMON_APPDATA as i32,
+            CSIDL_PROFILE as i32,
             HANDLE::default(),
             0,
             &mut out,

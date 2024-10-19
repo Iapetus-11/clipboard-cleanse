@@ -4,8 +4,8 @@ use windows::{
         Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, WPARAM},
         System::LibraryLoader::GetModuleHandleW,
         UI::WindowsAndMessaging::{
-            CreateWindowExW, RegisterClassW, CW_USEDEFAULT, WINDOW_EX_STYLE, WNDCLASSW, WS_BORDER,
-            WS_OVERLAPPEDWINDOW,
+            CreateWindowExW, DestroyWindow, RegisterClassW, CW_USEDEFAULT, WINDOW_EX_STYLE,
+            WNDCLASSW, WS_BORDER, WS_OVERLAPPEDWINDOW,
         },
     },
 };
@@ -54,7 +54,11 @@ pub fn init_window(wnd_proc: WindowProc) -> windows::core::Result<HWND> {
         )?
     };
 
-    log!(Debug, "Window initialized!");
+    log!(Debug, "Window initialized");
 
     Ok(hwnd)
+}
+
+pub fn destroy_window(hwnd: HWND) -> windows::core::Result<()> {
+    unsafe { DestroyWindow(hwnd) }
 }
