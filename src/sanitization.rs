@@ -10,6 +10,13 @@ static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     .unwrap()
 });
 
+static URL_ONLY_SCHEME_DOMAIN_PATH_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"([a-zA-Z0-9]+:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b\/?"
+    )
+    .unwrap()
+});
+
 fn remove_query_params(url: Url, query_param_keys: &HashSet<&str, RandomState>) -> Url {
     let mut new_url = url.clone();
 
@@ -138,6 +145,8 @@ pub fn sanitize(text: &str) -> String {
 
         let url = remove_query_params(url, &query_params_to_remove);
 
+        println!("{:?} {}", url.path_segments().unwrap().collect::<Vec<_>>(), url.path());
+
         output = output.replace(split_part, url.as_str());
     }
 
@@ -161,6 +170,30 @@ mod tests {
             LOREM_IPSUM,
         ] {
             assert_eq!(sanitize(case), case);
+        }
+    }
+
+    #[test]
+    fn test_trailing_question_mark_left_alone() {
+        assert_eq!(sanitize("https://iapetus11.me/?"), "https://iapetus11.me/?");
+    }
+
+    #[test]
+    fn test_trailing_hash_left_alone() {
+        assert_eq!(sanitize("https://iapetus11.me/#"), "https://iapetus11.me/#");
+    }
+
+    #[test]
+    fn test_trailing_slash_left_alone() {
+        for (case, expected) in [
+            ("https://test.example.com/", "https://test.example.com/"),
+            ("https://test.example.com", "https://test.example.com"),
+            ("https://test.example.com/?test_query=123", "https://test.example.com/?test_query=123"),
+            ("https://test.example.com?test_query=123", "https://test.example.com?test_query=123"),
+            ("https://test.example.com?test_query=123&utm_campaign=vb-discord-embed", "https://test.example.com?test_query=123"),
+            ("https://test.example.com?utm_campaign=vb-discord-embed&test_query=123", "https://test.example.com?test_query=123"),
+        ] {
+            assert_eq!(sanitize(case), expected);
         }
     }
 
