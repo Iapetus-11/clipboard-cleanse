@@ -17,6 +17,22 @@ static URL_ONLY_SCHEME_DOMAIN_PATH_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     .unwrap()
 });
 
+fn ensure_url_consistency(matched: &str, url: Url) -> String {
+    let mut url_str = url.as_str();
+
+    // url.as_str() should always produce a URL with a trailing slash
+    let has_trailing_slash = URL_ONLY_SCHEME_DOMAIN_PATH_REGEX.find(matched).unwrap().as_str().ends_with("/");
+    if !has_trailing_slash {
+        let url_up_to_path_str = format!("{}://{}/", url.scheme(), url.domain().unwrap());
+
+        let domain_idx = url_str.find("url_up_to_path_str").unwrap();
+
+        url_str = url_str.replace(&url_up_to_path_str, &url_up_to_path_str[0..&url_up_to_path_str.len()-1]).as_str();
+    }
+
+    url_str.to_string()
+}
+
 fn remove_query_params(url: Url, query_param_keys: &HashSet<&str, RandomState>) -> Url {
     let mut new_url = url.clone();
 
@@ -65,6 +81,10 @@ pub fn sanitize(text: &str) -> String {
 
     for (split_part, url) in matched_parts {
         let mut url = url;
+
+        if url.domain().is_none() {
+            continue;
+        }
 
         match url.domain().unwrap_or("") {
             "youtu.be" | "www.youtube.com" | "youtube.com" => {
@@ -144,8 +164,7 @@ pub fn sanitize(text: &str) -> String {
         }
 
         let url = remove_query_params(url, &query_params_to_remove);
-
-        println!("{:?} {}", url.path_segments().unwrap().collect::<Vec<_>>(), url.path());
+        let url = ensure_url_consistency(split_part, url);
 
         output = output.replace(split_part, url.as_str());
     }
