@@ -1,3 +1,3 @@
 pub enum WmUser {
-    ShellIcon = 0x0001,
+    ShellIcon = 0x0002,
 }
