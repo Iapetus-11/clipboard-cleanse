@@ -20,7 +20,7 @@ fn config_default_log_file() -> Option<String> {
     None
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     #[serde(skip_serializing, default)]
     pub config_path: String,

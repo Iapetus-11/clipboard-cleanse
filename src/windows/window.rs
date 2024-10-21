@@ -1,25 +1,20 @@
-use windows::{
-    core::PCWSTR,
-    Win32::{
-        Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, WPARAM},
-        System::LibraryLoader::GetModuleHandleW,
-        UI::WindowsAndMessaging::{
-            CreateWindowExW, DestroyWindow, RegisterClassW, CW_USEDEFAULT, WINDOW_EX_STYLE,
-            WNDCLASSW, WS_BORDER, WS_OVERLAPPEDWINDOW,
-        },
+use windows::Win32::{
+    Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, WPARAM},
+    System::LibraryLoader::GetModuleHandleW,
+    UI::WindowsAndMessaging::{
+        CreateWindowExW, DestroyWindow, RegisterClassW, CW_USEDEFAULT, WINDOW_EX_STYLE, WNDCLASSW,
+        WS_BORDER, WS_OVERLAPPEDWINDOW,
     },
 };
 
-use crate::log;
+use crate::{log, windows::win_utils::str_to_pcwstr};
 
 pub type WindowProc = unsafe extern "system" fn(HWND, u32, WPARAM, LPARAM) -> LRESULT;
 
 pub fn init_window(wnd_proc: WindowProc) -> windows::core::Result<HWND> {
     log!(Debug, "Initializing window...");
 
-    let wnd_class_name = "ClipboardCleanseWindow"
-        .encode_utf16()
-        .collect::<Vec<u16>>();
+    let wnd_class_name = str_to_pcwstr("ClipboardCleanseWindow");
 
     let hwnd = unsafe {
         let h_instance: HINSTANCE = GetModuleHandleW(None)?.into();
@@ -27,7 +22,7 @@ pub fn init_window(wnd_proc: WindowProc) -> windows::core::Result<HWND> {
         let wnd_class = WNDCLASSW {
             lpfnWndProc: Some(wnd_proc),
             hInstance: h_instance,
-            lpszClassName: PCWSTR(wnd_class_name.as_ptr()),
+            lpszClassName: wnd_class_name,
             ..Default::default()
         };
 
@@ -35,13 +30,8 @@ pub fn init_window(wnd_proc: WindowProc) -> windows::core::Result<HWND> {
 
         CreateWindowExW(
             WINDOW_EX_STYLE::default(),
-            PCWSTR(wnd_class_name.as_ptr()),
-            PCWSTR(
-                "Clipboard Cleanse"
-                    .encode_utf16()
-                    .collect::<Vec<u16>>()
-                    .as_ptr(),
-            ),
+            wnd_class_name,
+            str_to_pcwstr("Clipboard Cleanse"),
             WS_BORDER | WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
