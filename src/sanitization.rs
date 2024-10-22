@@ -18,16 +18,14 @@ static URL_ONLY_SCHEME_DOMAIN_PATH_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 fn ensure_url_consistency(matched: &str, url: Url) -> String {
-    let mut url_str = url.as_str();
+    let mut url_str = url.to_string();
 
     // url.as_str() should always produce a URL with a trailing slash
     let has_trailing_slash = URL_ONLY_SCHEME_DOMAIN_PATH_REGEX.find(matched).unwrap().as_str().ends_with("/");
     if !has_trailing_slash {
         let url_up_to_path_str = format!("{}://{}/", url.scheme(), url.domain().unwrap());
 
-        let domain_idx = url_str.find("url_up_to_path_str").unwrap();
-
-        url_str = url_str.replace(&url_up_to_path_str, &url_up_to_path_str[0..&url_up_to_path_str.len()-1]).as_str();
+        url_str = url_str.replacen(&url_up_to_path_str, &url_up_to_path_str[0..&url_up_to_path_str.len()-1], 1);
     }
 
     url_str.to_string()
