@@ -5,10 +5,43 @@ use url::Url;
 
 static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"([a-zA-Z0-9]+:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
+        r"([a-zA-Z0-9]+:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
     )
     .unwrap()
 });
+
+static URL_TRAILING_SLASH_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"([a-zA-Z0-9]+:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\b\/?").unwrap()
+});
+
+static URL_HASH_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\#(.*)").unwrap());
+
+fn ensure_url_consistency(matched: &str, mut url: Url) -> String {
+    // Ensure that a trailing query parameter is left alone
+    if url.query().is_none() && URL_HASH_REGEX.replace(matched, "").ends_with('?') {
+        url.set_query(Some(""));
+    }
+
+    let mut url_str = url.to_string();
+
+    // Remove trailing slash if there shouldn't be one
+    // url.as_str() should always produce a URL with a trailing slash
+    let has_trailing_slash = URL_TRAILING_SLASH_REGEX
+        .find(matched)
+        .unwrap()
+        .as_str()
+        .ends_with('/');
+    if !has_trailing_slash {
+        let url_up_to_path_str = format!("{}://{}/", url.scheme(), url.domain().unwrap());
+
+        url_str = url_str.replace(
+            &url_up_to_path_str,
+            &url_up_to_path_str[0..&url_up_to_path_str.len() - 1],
+        );
+    }
+
+    url_str
+}
 
 fn remove_query_params(url: Url, query_param_keys: &HashSet<&str, RandomState>) -> Url {
     let mut new_url = url.clone();
@@ -58,6 +91,10 @@ pub fn sanitize(text: &str) -> String {
 
     for (split_part, url) in matched_parts {
         let mut url = url;
+
+        if url.domain().is_none() {
+            continue;
+        }
 
         match url.domain().unwrap_or("") {
             "youtu.be" | "www.youtube.com" | "youtube.com" => {
@@ -137,8 +174,9 @@ pub fn sanitize(text: &str) -> String {
         }
 
         let url = remove_query_params(url, &query_params_to_remove);
+        let url = ensure_url_consistency(split_part, url);
 
-        output = output.replace(split_part, url.as_str());
+        output = output.replace(split_part, &url);
     }
 
     output
@@ -161,6 +199,90 @@ mod tests {
             LOREM_IPSUM,
         ] {
             assert_eq!(sanitize(case), case);
+        }
+    }
+
+    #[test]
+    fn test_trailing_question_mark_left_alone() {
+        assert_eq!(sanitize("https://iapetus11.me/?"), "https://iapetus11.me/?");
+
+        for (case, expected) in [
+            ("https://iapetus11.me/?", "https://iapetus11.me/?"),
+            ("https://iapetus11.me/test/?", "https://iapetus11.me/test/?"),
+            (
+                "https://iapetus11.me/?#abracdabra",
+                "https://iapetus11.me/?#abracdabra",
+            ),
+            (
+                "https://iapetus11.me/test/?#abracdabra",
+                "https://iapetus11.me/test/?#abracdabra",
+            ),
+        ] {
+            assert_eq!(sanitize(case), expected);
+        }
+    }
+
+    #[test]
+    fn test_trailing_hash_left_alone() {
+        for (case, expected) in [
+            ("https://iapetus11.me/#", "https://iapetus11.me/#"),
+            ("https://iapetus11.me/test/#", "https://iapetus11.me/test/#"),
+            (
+                "https://iapetus11.me/?query=abc#",
+                "https://iapetus11.me/?query=abc#",
+            ),
+            (
+                "https://iapetus11.me/test/?query=abc#",
+                "https://iapetus11.me/test/?query=abc#",
+            ),
+            (
+                "https://iapetus11.me/test/?#",
+                "https://iapetus11.me/test/?#",
+            ),
+        ] {
+            assert_eq!(sanitize(case), expected);
+        }
+    }
+
+    #[test]
+    fn test_trailing_slash_left_alone() {
+        for (case, expected) in [
+            ("https://test.example.com/", "https://test.example.com/"),
+            ("https://test.example.com", "https://test.example.com"),
+            (
+                "https://test.example.com/?test_query=123",
+                "https://test.example.com/?test_query=123",
+            ),
+            (
+                "https://test.example.com?test_query=123",
+                "https://test.example.com?test_query=123",
+            ),
+            (
+                "https://test.example.com?test_query=123&utm_campaign=vb-discord-embed",
+                "https://test.example.com?test_query=123",
+            ),
+            (
+                "https://test.example.com?utm_campaign=vb-discord-embed&test_query=123",
+                "https://test.example.com?test_query=123",
+            ),
+            (
+                "https://test.example.com/test.example.com/",
+                "https://test.example.com/test.example.com/",
+            ),
+            (
+                "https://test.example.com/test.example.com",
+                "https://test.example.com/test.example.com",
+            ),
+            (
+                "https://test.example.com/example/wow/",
+                "https://test.example.com/example/wow/",
+            ),
+            (
+                "https://test.example.com/example/wow",
+                "https://test.example.com/example/wow",
+            ),
+        ] {
+            assert_eq!(sanitize(case), expected);
         }
     }
 
