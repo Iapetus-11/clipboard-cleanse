@@ -11,21 +11,22 @@ static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 static URL_TRAILING_SLASH_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"([a-zA-Z0-9]+:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\b\/?")
-        .unwrap()
+    Regex::new(r"([a-zA-Z0-9]+:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6}\b\/?").unwrap()
 });
 
-static URL_HASH_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\#(.*)").unwrap()
-});
+static URL_HASH_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\#(.*)").unwrap());
 
 fn ensure_url_consistency(matched: &str, mut url: Url) -> String {
     let mut url_str = url.to_string();
 
-    println!("controversial: {:?}", URL_HASH_REGEX.find_iter(matched).collect::<Vec<_>>());
+    println!(
+        "controversial: {:?}",
+        URL_HASH_REGEX.find_iter(matched).collect::<Vec<_>>()
+    );
 
     // Ensure that a trailing query parameter is left alone
-    let has_trailing_question_mark = url.query().is_none() && URL_HASH_REGEX.replace(matched, "").ends_with('?');
+    let has_trailing_question_mark =
+        url.query().is_none() && URL_HASH_REGEX.replace(matched, "").ends_with('?');
     if has_trailing_question_mark {
         println!("HOLY");
         url.set_query(Some(""));
