@@ -1,6 +1,8 @@
 use objc2::{class, extern_class, msg_send, msg_send_id, mutability, rc::Retained, ClassType};
 use objc2_foundation::{NSInteger, NSObject, NSString};
 
+use crate::macos::utils::nsstring_to_string;
+
 #[allow(dead_code)]
 pub enum NSPasteboardType {
     Url,
@@ -65,7 +67,6 @@ extern_class!(
     }
 );
 
-#[allow(dead_code)]
 impl NSPasteboard {
     pub fn get_general_pasteboard() -> Retained<Self> {
         unsafe { msg_send_id![class!(NSPasteboard), generalPasteboard] }
@@ -76,11 +77,22 @@ impl NSPasteboard {
     }
 
     pub fn get_text(&self) -> Option<String> {
-        let contents: Option<Retained<NSString>> = unsafe {
-            msg_send_id![self, stringForType: &*NSString::from_str(&pasteboard_type_to_string(&NSPasteboardType::String))]
+        // This function leaks memory, I have tried so many different things to no avail. I know it is not a problem
+        // with NSPasteboard because similar code in Swift is not leaky.
+
+        let contents: *mut NSString = unsafe {
+            msg_send![self, stringForType: &*NSString::from_str(&pasteboard_type_to_string(&NSPasteboardType::String))]
         };
 
-        contents.map(|contents| contents.to_string())
+        if contents.is_null() {
+            return None;
+        }
+
+        let contents_str = nsstring_to_string(contents);
+
+        let _: () = unsafe { msg_send![contents, dealloc] };
+
+        contents_str
     }
 
     pub fn set_text(&self, contents: &str) {
