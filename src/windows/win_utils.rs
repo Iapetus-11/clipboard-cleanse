@@ -20,9 +20,16 @@ pub fn str_to_u16_nul_term_array<const N: usize>(str: &str) -> Result<[u16; N], 
         .map_err(|_| format!("Cannot coerce str into array of size {N}"))
 }
 
+pub struct RetainedPCWSTR {
+    pub value: PCWSTR,
+    _encoded: Vec<u16>,
+}
 
-pub fn str_to_pcwstr(str: &str) -> PCWSTR {
-    let mut str_data = str.encode_utf16().collect::<Vec<u16>>();
-    str_data.resize(str_data.len() + 1, 0);
-    PCWSTR(str_data.as_ptr())
+pub fn str_as_pcwstr(str: &str) -> RetainedPCWSTR {
+    let encoded = str.encode_utf16().chain([0]).collect::<Vec<u16>>();
+
+    RetainedPCWSTR {
+        value: PCWSTR(encoded.as_ptr()),
+        _encoded: encoded,
+    }
 }

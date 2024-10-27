@@ -7,22 +7,22 @@ use windows::Win32::{
     },
 };
 
-use crate::{log, windows::win_utils::str_to_pcwstr};
+use crate::{log, windows::win_utils::str_as_pcwstr};
 
 pub type WindowProc = unsafe extern "system" fn(HWND, u32, WPARAM, LPARAM) -> LRESULT;
 
 pub fn init_window(wnd_proc: WindowProc) -> windows::core::Result<HWND> {
     log!(Debug, "Initializing window...");
 
-    let wnd_class_name = str_to_pcwstr("ClipboardCleanseWindow");
-
     let hwnd = unsafe {
+        let wnd_class_name = str_as_pcwstr("ClipboardCleanseWindow");
+
         let h_instance: HINSTANCE = GetModuleHandleW(None)?.into();
 
         let wnd_class = WNDCLASSW {
             lpfnWndProc: Some(wnd_proc),
             hInstance: h_instance,
-            lpszClassName: wnd_class_name,
+            lpszClassName: wnd_class_name.value,
             ..Default::default()
         };
 
@@ -30,8 +30,8 @@ pub fn init_window(wnd_proc: WindowProc) -> windows::core::Result<HWND> {
 
         CreateWindowExW(
             WINDOW_EX_STYLE::default(),
-            wnd_class_name,
-            str_to_pcwstr("Clipboard Cleanse"),
+            wnd_class_name.value,
+            str_as_pcwstr("Clipboard Cleanse").value,
             WS_BORDER | WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT,
             CW_USEDEFAULT,

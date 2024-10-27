@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use config::load_and_ensure_config;
 
 #[cfg(target_os = "windows")]

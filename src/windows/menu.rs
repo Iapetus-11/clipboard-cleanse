@@ -1,34 +1,16 @@
 use windows::Win32::{
-    Foundation::{GetLastError, HWND},
+    Foundation::{GetLastError, HWND, LPARAM, WPARAM},
     UI::WindowsAndMessaging::{
-        CreatePopupMenu, InsertMenuW, TrackPopupMenu, HMENU, MF_BYPOSITION, MF_STRING,
-        TPM_BOTTOMALIGN, TPM_LEFTALIGN, TPM_LEFTBUTTON,
+        CreatePopupMenu, InsertMenuW, SendMessageW, TrackPopupMenu, HMENU, MF_BYPOSITION,
+        MF_STRING, TPM_BOTTOMALIGN, TPM_HORNEGANIMATION, TPM_LEFTALIGN, TPM_RIGHTBUTTON,
+        WM_CANCELMODE,
     },
 };
 use windows_result::HRESULT;
 
 use crate::{log, windows::system_tray::get_system_tray_item_rect};
 
-use super::win_utils::str_to_pcwstr;
-
-pub enum MenuCommand {
-    ToggleAutoStart = 1,
-    OpenConfigFile = 2,
-    Quit = 3,
-}
-
-impl TryFrom<usize> for MenuCommand {
-    type Error = usize;
-
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        match value {
-            1 => Ok(MenuCommand::ToggleAutoStart),
-            2 => Ok(MenuCommand::OpenConfigFile),
-            3 => Ok(MenuCommand::Quit),
-            _ => Err(value)
-        }
-    }
-}
+use super::{win_utils::str_as_pcwstr, wm_command::WmCommand};
 
 pub fn setup_menu() -> windows::core::Result<HMENU> {
     unsafe {
@@ -38,24 +20,24 @@ pub fn setup_menu() -> windows::core::Result<HMENU> {
             menu,
             0xFFFFFFFF,
             MF_BYPOSITION | MF_STRING,
-            MenuCommand::ToggleAutoStart as usize,
-            str_to_pcwstr("Toggle Auto-Start"),
+            WmCommand::MenuToggleAutoStart.into(),
+            str_as_pcwstr("Toggle Auto-Start").value,
         )?;
 
         InsertMenuW(
             menu,
             0xFFFFFFFF,
             MF_BYPOSITION | MF_STRING,
-            MenuCommand::OpenConfigFile as usize,
-            str_to_pcwstr("Open Config File"),
+            WmCommand::MenuOpenConfigFile.into(),
+            str_as_pcwstr("Open Config File").value,
         )?;
 
         InsertMenuW(
             menu,
             0xFFFFFFFF,
             MF_BYPOSITION | MF_STRING,
-            MenuCommand::Quit as usize,
-            str_to_pcwstr("Quit"),
+            WmCommand::MenuQuit.into(),
+            str_as_pcwstr("Quit").value,
         )?;
 
         Ok(menu)
@@ -78,8 +60,8 @@ pub fn show_menu_and_handle_action(hwnd: HWND, menu: HMENU) -> windows::core::Re
 
     let success = unsafe {
         TrackPopupMenu(
-            menu, 
-            TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_BOTTOMALIGN,
+            menu,
+            TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_BOTTOMALIGN | TPM_HORNEGANIMATION,
             rect.left,
             rect.top,
             0,
@@ -93,6 +75,12 @@ pub fn show_menu_and_handle_action(hwnd: HWND, menu: HMENU) -> windows::core::Re
 
         // Popup menu already active
         if error.code() == HRESULT(0x800705A6_u32 as i32) {
+            log!(Debug, "Closing system tray menu...");
+
+            unsafe { SendMessageW(hwnd, WM_CANCELMODE, WPARAM(0), LPARAM(0)) };
+
+            log!(Debug, "Requested system menu to be closed...");
+
             return Ok(());
         }
 
@@ -100,7 +88,7 @@ pub fn show_menu_and_handle_action(hwnd: HWND, menu: HMENU) -> windows::core::Re
         return Err(error);
     }
 
-    log!(Debug, "Opened system tray icon popup menu");
+    log!(Debug, "System tray menu closed");
 
     Ok(())
 }
