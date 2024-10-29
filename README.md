@@ -18,15 +18,7 @@
   - [ ] `tiktok.com` (TODO)
 
 ## Installation
-- For now, follow the directions to bundle the application under the relevant section for your operating system. You will need Rust installed.
-
-## MacOS
-- Unfortunately on MacOS, we have to poll the clipboard. This polling interval defaults to 500ms but is configurable.
-
-### Building + Bundling
-- Run `./bundling/macos/bundle.sh` from the project root.
-- To copy the app to the `/Applications` folder, add the `--copy-to-applications` flag
-- To sign the app using `codesign`, set the `CODESIGN_IDENTIFIER` envvar
+### [MacOS Instructions](MacOS.md#installation)
 
 ## Windows
 - TODO!
