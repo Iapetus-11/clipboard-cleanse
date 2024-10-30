@@ -10,6 +10,7 @@ mod win_utils;
 mod window;
 mod wm_command;
 mod wm_user;
+mod resources;
 
 pub use config::{get_home_directory, Config};
 pub use main::main;

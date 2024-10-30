@@ -67,7 +67,6 @@ fn process_wm_command(app: App, cmd: WmCommand) -> Result<(), Box<dyn Error>> {
                     "Start Menu",
                     "Programs",
                     "Startup",
-                    // "Desktop",
                     "Clipboard Cleanse.lnk",
                 ]);
 
@@ -83,7 +82,7 @@ fn process_wm_command(app: App, cmd: WmCommand) -> Result<(), Box<dyn Error>> {
 
                 fs::remove_file(&startup_file_path)?;
 
-                log!(Debug, "Removed shortcut from startup folder")
+                log!(Debug, "Removed shortcut from startup folder");
             } else {
                 log!(
                     Debug,

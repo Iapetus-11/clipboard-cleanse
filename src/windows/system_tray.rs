@@ -1,33 +1,38 @@
-use std::sync::LazyLock;
+use std::{error::Error, sync::LazyLock};
 
 use windows::{
-    core::GUID,
+    core::{GUID, PCWSTR},
     Win32::{
         Foundation::{HINSTANCE, HWND, RECT},
+        System::LibraryLoader::GetModuleHandleW,
         UI::{
             Shell::{
                 Shell_NotifyIconGetRect, Shell_NotifyIconW, NIF_ICON, NIF_MESSAGE, NIF_TIP,
                 NIM_ADD, NIM_DELETE, NOTIFYICONDATAW, NOTIFYICONIDENTIFIER,
             },
-            WindowsAndMessaging::{LoadIconW, IDI_QUESTION},
+            WindowsAndMessaging::LoadIconW,
         },
     },
 };
 
 use crate::{log, windows::wm_user::WmUser};
 
-use super::win_utils::str_to_u16_nul_term_array;
+use super::{resources::IDI_ICON, win_utils::str_to_u16_nul_term_array};
 
 static NOTIFY_ICON_UID: LazyLock<u32> = LazyLock::new(rand::random::<u32>);
 
-pub fn setup_system_tray_item(hwnd: HWND) -> Result<NOTIFYICONDATAW, String> {
+pub fn setup_system_tray_item(hwnd: HWND) -> Result<NOTIFYICONDATAW, Box<dyn Error>> {
+    let h_instance: HINSTANCE = unsafe { GetModuleHandleW(None) }?.into();
+    
+    let icon = unsafe { LoadIconW(h_instance, PCWSTR(IDI_ICON as *mut u16)) }?;
+
     let nid = NOTIFYICONDATAW {
         cbSize: size_of::<NOTIFYICONDATAW>() as u32,
         hWnd: hwnd,
         uID: *NOTIFY_ICON_UID,
         uFlags: NIF_ICON | NIF_MESSAGE | NIF_TIP,
         uCallbackMessage: WmUser::ShellIcon as u32,
-        hIcon: unsafe { LoadIconW(HINSTANCE::default(), IDI_QUESTION).unwrap() },
+        hIcon: icon,
         szTip: str_to_u16_nul_term_array::<128>("Clipboard Cleanse").unwrap(),
         ..Default::default()
     };
