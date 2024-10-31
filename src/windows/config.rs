@@ -26,5 +26,5 @@ pub fn get_home_directory() -> PathBuf {
     })
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Config {}
