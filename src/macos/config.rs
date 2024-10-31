@@ -18,7 +18,7 @@ fn config_default_poll_interval_ms() -> u64 {
     500_u64
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     #[serde(default = "config_default_poll_interval_ms")]
     pub poll_interval_ms: u64,
