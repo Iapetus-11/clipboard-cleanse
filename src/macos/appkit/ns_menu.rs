@@ -72,7 +72,6 @@ declare_class!(
     }
 );
 
-#[allow(dead_code)]
 impl NSMenuItem {
     pub fn init_with_action(
         mtm: &MainThreadMarker,
@@ -106,22 +105,6 @@ impl NSMenuItem {
         }
     }
 
-    pub fn set_title(&self, title: &str) {
-        unsafe { msg_send![self, setTitle:&*NSString::from_str(title)] }
-    }
-
-    pub fn get_enabled(&self) -> bool {
-        unsafe { msg_send![self, enabled] }
-    }
-
-    pub fn set_enabled(&self, is_enabled: bool) {
-        unsafe { msg_send![self, setEnabled:is_enabled] }
-    }
-
-    pub fn get_badge(&self) -> Retained<NSMenuItemBadge> {
-        unsafe { msg_send_id![self, badge] }
-    }
-
     pub fn set_badge(&self, badge: &NSMenuItemBadge) {
         unsafe { msg_send![self, setBadge:badge] }
     }
@@ -137,24 +120,10 @@ extern_class!(
     }
 );
 
-#[allow(dead_code)]
 impl NSMenuItemBadge {
-    pub fn init_with_count(mtm: &MainThreadMarker, count: isize) -> Retained<Self> {
-        let this = mtm.alloc::<Self>();
-        unsafe { msg_send_id![this, initWithCount:count] }
-    }
-
     pub fn init_with_string(mtm: &MainThreadMarker, string: &str) -> Retained<Self> {
         let this = mtm.alloc::<Self>();
         unsafe { msg_send_id![this, initWithString:&*NSString::from_str(string)] }
-    }
-
-    pub fn get_count(&self) -> isize {
-        unsafe { msg_send![self, itemCount] }
-    }
-
-    pub fn set_count(&self, count: isize) {
-        unsafe { msg_send![self, setItemCount:count] }
     }
 
     pub fn get_string(&self) -> String {

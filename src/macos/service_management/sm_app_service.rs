@@ -1,5 +1,5 @@
 use objc2::{class, extern_class, msg_send, msg_send_id, mutability, rc::Retained, ClassType};
-use objc2_foundation::{NSObject, NSString};
+use objc2_foundation::NSObject;
 
 use crate::macos::appkit::NSError;
 
@@ -35,7 +35,6 @@ impl TryFrom<isize> for SMAppServiceStatus {
     }
 }
 
-#[allow(dead_code)]
 impl SMAppService {
     pub fn open_system_settings_to_login_items() {
         unsafe { msg_send![class!(SMAppService), openSystemSettingsLoginItems] }
@@ -43,12 +42,6 @@ impl SMAppService {
 
     pub fn get_main_app_service() -> Retained<Self> {
         unsafe { msg_send_id![class!(SMAppService), mainAppService] }
-    }
-
-    pub fn get_login_item_service_with_identifier(identifier: &str) -> Retained<Self> {
-        unsafe {
-            msg_send_id![class!(SMAppService), loginItemServiceWithIdentifier:&*NSString::from_str(identifier)]
-        }
     }
 
     pub fn get_status(&self) -> Result<SMAppServiceStatus, String> {

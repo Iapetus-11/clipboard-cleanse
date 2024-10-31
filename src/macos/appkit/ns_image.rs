@@ -1,5 +1,5 @@
-use objc2::{class, extern_class, msg_send, msg_send_id, mutability, rc::Retained, ClassType};
-use objc2_foundation::{NSObject, NSString};
+use objc2::{extern_class, msg_send, msg_send_id, mutability, rc::Retained, ClassType};
+use objc2_foundation::NSObject;
 
 use super::{NSData, NSSize};
 
@@ -19,32 +19,9 @@ pub enum NSImageResizingMode {
     Stretch = 1,
 }
 
-#[allow(dead_code)]
 impl NSImage {
     pub fn init_with_data(data: &NSData) -> Retained<Self> {
         unsafe { msg_send_id![Self::alloc(), initWithData:data] }
-    }
-
-    pub fn load_by_name(name: &str) -> Option<Retained<Self>> {
-        unsafe {
-            msg_send_id![
-                class!(NSImage),
-                imageNamed:&*NSString::from_str(name),
-            ]
-        }
-    }
-
-    pub fn load_sys_image(
-        symbol_name: &str,
-        accessibility_description: &str,
-    ) -> Option<Retained<Self>> {
-        unsafe {
-            msg_send_id![
-                class!(NSImage),
-                imageWithSystemSymbolName:&*NSString::from_str(symbol_name),
-                accessibilityDescription:&*NSString::from_str(accessibility_description),
-            ]
-        }
     }
 
     pub fn set_resizing_mode(&self, mode: NSImageResizingMode) {

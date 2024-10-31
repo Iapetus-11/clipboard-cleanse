@@ -17,9 +17,7 @@ pub use ns_error::NSError;
 pub use ns_file_manager::NSFileManager;
 pub use ns_image::{NSImage, NSImageResizingMode};
 pub use ns_menu::{NSMenu, NSMenuItem, NSMenuItemBadge};
-#[allow(unused_imports)]
-pub use ns_pasteboard::{NSPasteboard, NSPasteboardType};
+pub use ns_pasteboard::NSPasteboard;
 pub use ns_size::NSSize;
-#[allow(unused_imports)]
-pub use ns_status_bar::{NSStatusBar, NSStatusBarButton, NSStatusItem};
+pub use ns_status_bar::{NSStatusBar, NSStatusItem};
 pub use ns_url::NSURL;
