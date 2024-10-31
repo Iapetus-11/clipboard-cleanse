@@ -23,7 +23,7 @@ static NOTIFY_ICON_UID: LazyLock<u32> = LazyLock::new(rand::random::<u32>);
 
 pub fn setup_system_tray_item(hwnd: HWND) -> Result<NOTIFYICONDATAW, Box<dyn Error>> {
     let h_instance: HINSTANCE = unsafe { GetModuleHandleW(None) }?.into();
-    
+
     let icon = unsafe { LoadIconW(h_instance, PCWSTR(IDI_ICON as *mut u16)) }?;
 
     let nid = NOTIFYICONDATAW {
