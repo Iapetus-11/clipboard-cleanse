@@ -1,7 +1,8 @@
 use core::error;
 use std::env::current_exe;
 use std::error::Error;
-use std::{fs, process};
+use std::time::Duration;
+use std::{fs, process, thread};
 
 use crate::log;
 use crate::windows::get_home_directory;
@@ -41,6 +42,8 @@ struct App {
 static mut APP: Option<App> = None;
 
 pub fn process_win32_events_forever(hwnd: HWND) {
+    let sleep_duration = Duration::from_millis(200);
+
     log!(Debug, "Running event loop...");
 
     let mut msg: MSG = MSG::default();
@@ -50,6 +53,9 @@ pub fn process_win32_events_forever(hwnd: HWND) {
                 DispatchMessageW(&msg);
             }
         }
+
+        // Don't want to consume so many cpu cycles
+        thread::sleep(sleep_duration);
     }
 }
 
