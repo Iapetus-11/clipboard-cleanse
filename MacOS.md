@@ -8,15 +8,18 @@
 cd ~/Downloads
 unzip -o "Clipboard.Cleanse.MacOS.zip"
 mv "Clipboard Cleanse.app" "/Applications/Clipboard Cleanse.app"
-```
-3. If MacOS says the application is invalid, you can run the following command to remove it from the quarantine:
-```
-xattr -l "Applications/Clipboard Cleanse.app"
+xattr -d com.apple.quarantine "/Applications/Clipboard Cleanse.app"
 ```
 
 ## Building from Source
-- Open your terminal and navigate to the project's root
-- Run `./bundling/macos/bundle.sh`
-  - This will build the app in release mode and bundle it into a MacOS .app
-- To copy the app to the `/Applications` folder, add the `--copy-to-applications` flag
+- Ensure you have Rust installed https://rustup.rs/
+- Open your terminal and clone the repository with `git clone https://github.com/Iapetus-11/clipboard-cleanse.git`
+- Navigate to the project's root: `cd clipboard-cleanse`
+
+### Development
+- Simply use `cargo run`
+
+### Bundling
+- Run `./bundling/macos/bundle.sh` to build the app in release mode and bundle it into a MacOS .app
+- To copy the app to the `/Applications` folder, use the `--copy-to-applications` flag
 - To sign the app using `codesign`, set the `CODESIGN_IDENTIFIER` envvar

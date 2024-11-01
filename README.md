@@ -19,6 +19,4 @@
 
 ## Installation
 ### [MacOS Instructions](MacOS.md#installation)
-
-## Windows
-- TODO!
+### [Windows Instructions](Windows.md#installation)
