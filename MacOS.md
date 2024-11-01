@@ -8,10 +8,7 @@
 cd ~/Downloads
 unzip -o "Clipboard.Cleanse.MacOS.zip"
 mv "Clipboard Cleanse.app" "/Applications/Clipboard Cleanse.app"
-```
-3. If MacOS says the application is invalid, you can run the following command to remove it from the quarantine:
-```
-xattr -l "Applications/Clipboard Cleanse.app"
+xattr -d com.apple.quarantine "/Applications/Clipboard Cleanse.app"
 ```
 
 ## Building from Source
