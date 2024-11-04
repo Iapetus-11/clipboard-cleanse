@@ -10,6 +10,7 @@ With Clipboard Cleanse, all that junk would be removed, leaving you with this:
 ```
 https://www.amazon.com/Inflatable-Costume-Halloween-Spacesuit-Astronaut/dp/B09BJS9BBJ
 ```
+Refer to the [goals](#project-goals) section below for a full list of supported websites, or create a pull request to add a new one!
 
 ## Installation
 ### [MacOS Instructions](MacOS.md#installation)
