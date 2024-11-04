@@ -7,13 +7,12 @@ use windows::Win32::{
             CloseClipboard, EmptyClipboard, GetClipboardData, IsClipboardFormatAvailable,
             OpenClipboard, SetClipboardData,
         },
-        Memory::{GlobalLock, GlobalSize, GlobalUnlock},
+        Memory::{GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_MOVEABLE, GMEM_ZEROINIT},
     },
 };
 
 use crate::log;
 
-// TODO: Make proper enum
 const CF_UNICODETEXT: u32 = 13;
 
 #[derive(Debug)]
@@ -107,17 +106,18 @@ impl Clipboard {
     pub fn set_text(&mut self, text: String) -> windows::core::Result<()> {
         self.with_clipboard(Box::new(move || {
             unsafe {
+                let text_utf16 = text.encode_utf16().collect::<Vec<u16>>();
+                let text_size = text_utf16.len() * std::mem::size_of::<u16>();
+
+                let text_handle_mem =
+                    GlobalLock(GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, text_size + 1)?);
+                text_utf16
+                    .as_ptr()
+                    .copy_to_nonoverlapping(text_handle_mem as *mut u16, text_utf16.len());
+                GlobalUnlock(HGLOBAL(text_handle_mem))?;
+
                 EmptyClipboard()?;
-                SetClipboardData(
-                    CF_UNICODETEXT,
-                    HANDLE(
-                        text.clone()
-                            .encode_utf16()
-                            .collect::<Box<[u16]>>()
-                            .as_mut_ptr()
-                            .cast::<c_void>(),
-                    ),
-                )?;
+                SetClipboardData(CF_UNICODETEXT, HANDLE(text_handle_mem))?;
             }
 
             Ok(())

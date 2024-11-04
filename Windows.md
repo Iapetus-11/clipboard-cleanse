@@ -2,7 +2,6 @@
 
 ## Installation
 1. Download the latest release for Windows from the [releases page](https://github.com/Iapetus-11/clipboard-cleanse/releases/latest)
-    - Make sure to download only the exe file that with "Windows" in the name
 2. Copy `clipboard_cleanse.exe` to `C:\Program Files\Clipboard Cleanse`
 
 ## Building from Source
