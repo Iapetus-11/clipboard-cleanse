@@ -1,5 +1,5 @@
 # Clipboard Cleanse
-*Automatically remove bullshit from copied URLs*
+*Automatically remove crap from copied URLs*
 
 ## Why?
 Ever wonder what that extra stuff on the end of a URL is for? Well, there's a good chance it's useless tracking data to help corporations spy on you and your friends... take this Amazon link for example:
