@@ -17,7 +17,7 @@ https://www.amazon.com/Inflatable-Costume-Halloween-Spacesuit-Astronaut/dp/B09BJ
 
 ## Project Goals
 - [x] MacOS menu bar app
-- [ ] Windows system tray app
+- [x] Windows system tray app
 - [ ] Linux app?
 - [ ] Tracking information / bullshit removal from links
   - [x] `utm_*` query parameters
