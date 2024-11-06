@@ -31,3 +31,4 @@ Refer to the [goals](#project-goals) section below for a full list of supported 
   - [x] `walmart.com` (removes `?from=...&sid=...` query parameters)
   - [ ] `facebook.com` (TODO)
   - [ ] `tiktok.com` (TODO)
+- [ ] Config option for stripping affiliate links (always on currently)
