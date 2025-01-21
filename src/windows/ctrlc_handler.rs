@@ -28,7 +28,7 @@ extern "system" fn console_handler(signal: u32) -> BOOL {
 
             match attempt_graceful {
                 true => unsafe {
-                    PostMessageW(hwnd, WM_QUIT, WPARAM(0), LPARAM(0)).unwrap();
+                    PostMessageW(Some(hwnd), WM_QUIT, WPARAM(0), LPARAM(0)).unwrap();
                 },
                 false => {},
             }
@@ -43,6 +43,6 @@ extern "system" fn console_handler(signal: u32) -> BOOL {
 pub fn setup_ctrlc_handler(hwnd: HWND) -> windows::core::Result<()> {
     unsafe {
         GLOBAL_HWND = Some(hwnd);
-        SetConsoleCtrlHandler(Some(console_handler), true)
+        SetConsoleCtrlHandler(Some(Some(console_handler)), true)
     }
 }

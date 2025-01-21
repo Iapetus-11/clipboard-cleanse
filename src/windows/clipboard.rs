@@ -26,7 +26,7 @@ impl Clipboard {
     }
 
     fn open(&mut self) -> Result<(), windows_result::Error> {
-        let result = unsafe { OpenClipboard(self.hwnd) };
+        let result = unsafe { OpenClipboard(Some(self.hwnd)) };
 
         match result.is_ok() {
             true => log!(Debug, "Opened clipboard"),
@@ -117,7 +117,7 @@ impl Clipboard {
                 GlobalUnlock(HGLOBAL(text_handle_mem))?;
 
                 EmptyClipboard()?;
-                SetClipboardData(CF_UNICODETEXT, HANDLE(text_handle_mem))?;
+                SetClipboardData(CF_UNICODETEXT, Some(HANDLE(text_handle_mem)))?;
             }
 
             Ok(())

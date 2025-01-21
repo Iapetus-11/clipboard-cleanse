@@ -1,5 +1,5 @@
 use windows::Win32::{
-    Foundation::{GetLastError, HWND, LPARAM, WPARAM},
+    Foundation::{GetLastError, HWND},
     UI::WindowsAndMessaging::{
         CreatePopupMenu, InsertMenuW, SendMessageW, TrackPopupMenu, HMENU, MF_BYPOSITION,
         MF_STRING, TPM_BOTTOMALIGN, TPM_HORNEGANIMATION, TPM_LEFTALIGN, TPM_RIGHTBUTTON,
@@ -64,7 +64,7 @@ pub fn show_menu_and_handle_action(hwnd: HWND, menu: HMENU) -> windows::core::Re
             TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_BOTTOMALIGN | TPM_HORNEGANIMATION,
             rect.left,
             rect.top,
-            0,
+            None,
             hwnd,
             None,
         )
@@ -77,7 +77,7 @@ pub fn show_menu_and_handle_action(hwnd: HWND, menu: HMENU) -> windows::core::Re
         if error.code() == HRESULT(0x800705A6_u32 as i32) {
             log!(Debug, "Closing system tray menu...");
 
-            unsafe { SendMessageW(hwnd, WM_CANCELMODE, WPARAM(0), LPARAM(0)) };
+            unsafe { SendMessageW(hwnd, WM_CANCELMODE, None, None) };
 
             log!(Debug, "Requested system menu to be closed...");
 

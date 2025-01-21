@@ -49,7 +49,7 @@ pub fn process_win32_events_forever(hwnd: HWND) {
     let mut msg: MSG = MSG::default();
     while msg.message != WM_QUIT {
         unsafe {
-            if PeekMessageW(&mut msg, hwnd, 0, 0, PM_REMOVE).into() {
+            if PeekMessageW(&mut msg, Some(hwnd), 0, 0, PM_REMOVE).into() {
                 DispatchMessageW(&msg);
             }
         }
@@ -111,7 +111,7 @@ fn process_wm_command(app: App, cmd: WmCommand) -> Result<(), Box<dyn Error>> {
                 .unwrap();
         }
         WmCommand::MenuQuit => unsafe {
-            PostMessageW(app.hwnd, WM_QUIT, WPARAM(0), LPARAM(0)).unwrap();
+            PostMessageW(Some(app.hwnd), WM_QUIT, WPARAM(0), LPARAM(0)).unwrap();
         },
     }
 

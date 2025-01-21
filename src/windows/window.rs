@@ -39,7 +39,7 @@ pub fn init_window(wnd_proc: WindowProc) -> windows::core::Result<HWND> {
             CW_USEDEFAULT,
             None,
             None,
-            h_instance,
+            Some(h_instance),
             None,
         )?
     };
