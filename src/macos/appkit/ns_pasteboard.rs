@@ -77,9 +77,8 @@ impl NSPasteboard {
     }
 
     pub fn get_text(&self) -> Option<String> {
-        // This function leaks memory, I have tried so many different things to no avail. I know it is not a problem
-        // with NSPasteboard because similar code in Swift is not leaky.
-
+        // `stringForType:` returns an object we do not own, so copy it into a Rust String and
+        // leave Objective-C lifetime management to AppKit/autorelease pools.
         let contents: *mut NSString = unsafe {
             msg_send![self, stringForType: &*NSString::from_str(&pasteboard_type_to_string(&NSPasteboardType::String))]
         };
@@ -88,11 +87,7 @@ impl NSPasteboard {
             return None;
         }
 
-        let contents_str = nsstring_to_string(contents);
-
-        let _: () = unsafe { msg_send![contents, dealloc] };
-
-        contents_str
+        nsstring_to_string(contents)
     }
 
     pub fn set_text(&self, contents: &str) {
